@@ -9,6 +9,8 @@ package top.imwonder.util;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * StringUtil
@@ -16,6 +18,11 @@ import java.util.Queue;
  * @description: 字符串工具类
  **/
 public class StringUtil {
+
+    private StringUtil() {
+    }
+
+    private static Pattern humPattern = Pattern.compile("[A-Z]");
 
     /**
      * 判断是否为空字符串最优代码
@@ -76,8 +83,8 @@ public class StringUtil {
      * @param hasPerfix             是否要去除前缀
      * @return 转换后的字符串
      */
-    public static String toCamelCase(String str, String regex, boolean isFirstAlphaUpperCase, boolean hasPerfix) {
-        StringBuffer bf = new StringBuffer();
+    public static String toHumpCase(String str, String regex, boolean isFirstAlphaUpperCase, boolean hasPerfix) {
+        StringBuffer buf = new StringBuffer();
         Queue<String> qu = new LinkedList<>(Arrays.asList(str.toLowerCase().split(regex)));
         if (hasPerfix) {
             qu.poll();
@@ -87,16 +94,31 @@ public class StringUtil {
         }
         String head = qu.poll();
         if (isFirstAlphaUpperCase) {
-            bf.append(head.substring(0, 1).toUpperCase());
-            bf.append(head.substring(1));
+            buf.append(head.substring(0, 1).toUpperCase());
+            buf.append(head.substring(1));
         } else {
-            bf.append(head);
+            buf.append(head);
         }
         for (String s : qu) {
-            bf.append(s.substring(0, 1).toUpperCase());
-            bf.append(s.substring(1));
+            buf.append(s.substring(0, 1).toUpperCase());
+            buf.append(s.substring(1));
         }
-        return bf.toString();
+        return buf.toString();
+    }
+
+    public static String toSeparator(String str, String separator, boolean isToUpperCase, String... perfix) {
+        Matcher matcher;
+        if (isToUpperCase) {
+            matcher = humPattern.matcher(str.toUpperCase());
+        } else {
+            matcher = humPattern.matcher(str);
+        }
+        StringBuffer buf = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(buf, separator + matcher.group(0));
+        }
+        matcher.appendTail(buf);
+        return buf.toString();
     }
 
     /**
@@ -111,5 +133,18 @@ public class StringUtil {
             chars[0] -= 32;
         }
         return String.valueOf(chars);
+    }
+
+    public static String hexStr2Str(String hexStr) {
+        String str = "0123456789ABCDEF";
+        char[] hexs = hexStr.toCharArray();
+        byte[] bytes = new byte[hexStr.length() / 2];
+        int n;
+        for (int i = 0; i < bytes.length; i++) {
+            n = str.indexOf(hexs[2 * i]) * 16;
+            n += str.indexOf(hexs[2 * i + 1]);
+            bytes[i] = (byte) (n & 0xff);
+        }
+        return new String(bytes);
     }
 }
